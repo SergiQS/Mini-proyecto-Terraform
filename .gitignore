@@ -1,0 +1,28 @@
+# Terraform state: contiene TODOS los atributos de tus recursos en texto plano,
+# incluidas IPs, claves y cualquier secreto que pase por un resource. Nunca a git.
+*.tfstate
+*.tfstate.*
+*.tfstate.backup
+
+# Directorio de plugins/providers descargados por `terraform init` (pesa cientos de MB)
+.terraform/
+.terraform.lock.hcl.bak
+
+# Ficheros de variables: suelen llevar valores concretos de tu entorno (tu IP, IDs de cuenta)
+*.tfvars
+*.tfvars.json
+terraform.tfvars
+
+# Planes guardados: un plan binario incluye los valores de las variables sensibles
+*.tfplan
+plan.out
+
+# Crash logs
+crash.log
+crash.*.log
+
+# Overrides locales
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
