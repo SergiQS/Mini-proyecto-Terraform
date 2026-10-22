@@ -1,13 +1,13 @@
 # Progreso - Plan Terraform
 
 ## Nivel 1 - Base ✅ en progreso
-- [ ] VPC + subnet pública + EC2 
-- [ ] Restringir SG a mi IP
-- [ ] Subnet privada
-- [ ] Variables vía tfvars
+- [X] VPC + subnet pública + EC2 
+- [X] Restringir SG a mi IP
+- [X] Subnet privada
+- [X] Variables vía tfvars
 
 ## Decisiones tomadas
-- Región: eu-west-1
+- Región: eu-west-1 (irlanda)
 - AMI: Ubuntu 22.04 vía data source (no hardcodeado)
 
 ## Dudas pendientes para retomar en Claude.ai

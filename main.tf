@@ -100,10 +100,18 @@ resource "aws_subnet" "public" {
       values = [ "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*" ]
     }
  }
+ #Key pair para SSH
+resource "aws_key_pair" "deployer" {
+    key_name = "mini-terraform-key"
+    public_key = file("C:/Users/sergi/Desktop/KeysProyectos/mini-terraform-key.pub")
+  
+}
+
 #Instacia EC2
  resource "aws_instance" "mini-server" {
   ami                    = data.aws_ami.ubuntu.id
   instance_type          = var.instance_type
+  key_name = aws_key_pair.deployer.key_name
   subnet_id              = aws_subnet.public.id
   vpc_security_group_ids = [aws_security_group.ssh.id]
 
