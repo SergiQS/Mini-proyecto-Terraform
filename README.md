@@ -73,11 +73,13 @@ Declaradas en `variables.tf`. Las que no tienen `default` hay que ponerlas en `t
 | `private_subnet_cidr` | `10.0.2.0/24` | CIDR de la subnet privada |
 | `instance_type` | `t2.micro` | Tipo de instancia EC2 |
 | `my_ip` | *(sin default, obligatoria)* | Tu IP pública en formato `x.x.x.x/32`, para el Security Group |
+| `public_key_path` | *(sin default, obligatoria)* | Ruta local a tu clave pública SSH (`.pub`), fuera del repo |
 
 Ejemplo de `terraform.tfvars` (fichero local, no versionado):
 
 ```hcl
-my_ip = "203.0.113.10/32"   # ejemplo: usa TU IP pública real, no esta
+my_ip            = "203.0.113.10/32"   # ejemplo: usa TU IP pública real, no esta
+public_key_path  = "C:/ruta/a/tu/clave/mini-terraform-key.pub"
 ```
 
 > `203.0.113.10` pertenece al rango `TEST-NET-3` (RFC 5737), reservado para
@@ -89,10 +91,6 @@ Tu IP pública se puede consultar con:
 ```powershell
 (Invoke-RestMethod ifconfig.me)
 ```
-
-> La ruta a la clave pública (`public_key = file(...)`) en el `aws_key_pair` del
-> `main.tf` está hardcodeada a una ruta local absoluta — pendiente de
-> parametrizar como variable para que el proyecto sea portable entre máquinas.
 
 ## Uso
 
@@ -130,13 +128,12 @@ terraform destroy
 ## Pendiente / mejoras futuras
 
 - [ ] Restringir el `egress` del Security Group (ahora mismo permite todo el tráfico saliente) a los puertos mínimos necesarios (DNS 53, HTTP 80, HTTPS 443, NTP 123).
-- [ ] Parametrizar la ruta de la clave pública del `aws_key_pair` como variable.
 - [ ] Quitar el `default` de `region` para obligar a elegirla explícitamente.
 - [ ] Nivel 2: NAT Gateway para la subnet privada, módulos, remote state.
 
 ## Problemas encontrados
 
-- **Síntoma**: `terraform plan` fallaba con un error de credenciales inválidas. **Causa**: problema con la Secret Access Key configurada. **Solución**: se optó por regenerar las claves en IAM y volver a correr `aws configure`.
+- **Síntoma**: `terraform plan` fallaba con un error de credenciales inválidas(se copio con "_" de mas). **Causa**: problema con la Secret Access Key configurada. **Solución**: se optó por regenerar las claves en IAM y volver a correr `aws configure`.
 - **Síntoma**: tras el `apply`, no se veía la instancia en la consola de AWS. **Causa**: la consola estaba en otra región distinta a `eu-west-1`. **Solución**: cambiar el selector de región arriba a la derecha.
 - **Síntoma**: no se podía hacer SSH pese a tener el SG bien configurado. **Causa**: la instancia se había creado sin `key_name`, sin ningún par de claves asociado. **Solución**: crear `aws_key_pair` y añadir `key_name` al `aws_instance` (esto fuerza un `destroy and recreate`, al ser un atributo fijado en el momento del lanzamiento).
 

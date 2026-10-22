@@ -117,7 +117,7 @@ data "aws_ami" "ubuntu" {
 #Key pair para SSH
 resource "aws_key_pair" "deployer" {
   key_name   = "mini-terraform-key"
-  public_key = file("C:/Users/sergi/Desktop/KeysProyectos/mini-terraform-key.pub")
+  public_key = file(var.public_key_path)
 
 }
 

@@ -26,3 +26,9 @@ variable "instance_type" {
   default = "t2.micro"
 
 }
+
+variable "public_key_path" {
+  type = string
+  description = "Ruta a la clave publica SSH" 
+  
+}
