@@ -1,10 +1,11 @@
 # Progreso - Plan Terraform
 
-## Nivel 1 - Base ✅ en progreso
+## Nivel 1 - Base ✅ completado
 - [X] VPC + subnet pública + EC2 
 - [X] Restringir SG a mi IP
 - [X] Subnet privada
 - [X] Variables vía tfvars
+- [X] Key pair gestionado por Terraform + SSH (extra, no estaba en el plan original)
 
 ## Decisiones tomadas
 - Región: eu-west-1 (irlanda)

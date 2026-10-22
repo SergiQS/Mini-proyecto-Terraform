@@ -18,6 +18,31 @@ DevOps/Cloud Architect junior), no pensado para producción.
 - **Key pair** gestionado por Terraform a partir de una clave pública local.
 - **Instancia EC2** (Ubuntu 22.04, resuelto vía `data "aws_ami"`, siempre la AMI más reciente) en la subnet pública.
 
+## Arquitectura
+
+```mermaid
+flowchart TB
+    subgraph VPC["VPC 10.0.0.0/16"]
+        subgraph Public["Subnet pública 10.0.1.0/24"]
+            EC2["EC2 mini-server<br/>Ubuntu 22.04"]
+        end
+        subgraph Private["Subnet privada 10.0.2.0/24<br/>(sin salida a internet)"]
+        end
+        RTPub["Route table pública<br/>0.0.0.0/0 → IGW"]
+        RTPriv["Route table privada<br/>solo ruta local"]
+    end
+    IGW["Internet Gateway"]
+    Internet(("Internet"))
+    Me["Tu IP /32"]
+
+    Internet <--> IGW
+    IGW <--> RTPub
+    RTPub -.-> Public
+    RTPriv -.-> Private
+    Me -- "SSH :22" --> EC2
+    EC2 -- egress 0.0.0.0/0 --> Internet
+```
+
 ## Estructura
 
 ```
@@ -52,8 +77,13 @@ Declaradas en `variables.tf`. Las que no tienen `default` hay que ponerlas en `t
 Ejemplo de `terraform.tfvars` (fichero local, no versionado):
 
 ```hcl
-my_ip = "88.21.75.154/32"
+my_ip = "203.0.113.10/32"   # ejemplo: usa TU IP pública real, no esta
 ```
+
+> `203.0.113.10` pertenece al rango `TEST-NET-3` (RFC 5737), reservado para
+> documentación — no es una IP real. Nunca pongas tu IP pública real en un
+> fichero que vaya a subirse a un repo público; `terraform.tfvars` ya está en
+> `.gitignore` precisamente por esto.
 
 Tu IP pública se puede consultar con:
 ```powershell
@@ -86,9 +116,12 @@ ssh -i "C:\ruta\a\mini-terraform-key" ubuntu@<mini_server_public_ip>
 
 ## Limpieza
 
-Este proyecto crea recursos reales en AWS (dentro del free tier si la cuenta
-es nueva — ninguno de los recursos aquí, al no haber NAT Gateway, tiene coste
-fuera de la instancia EC2). Para no dejar nada corriendo:
+Este proyecto crea recursos reales en AWS, dentro del free tier en cuentas
+nuevas (sin NAT Gateway, que sí tendría coste por hora incluso parado). Ojo:
+desde 2024 AWS también cobra por las IPv4 públicas asignadas a instancias en
+ejecución, aunque las cuentas nuevas tienen horas gratuitas incluidas — no
+asumas que todo lo que no sea la EC2 es gratis indefinidamente. Para no dejar
+nada corriendo:
 
 ```powershell
 terraform destroy
@@ -98,8 +131,14 @@ terraform destroy
 
 - [ ] Restringir el `egress` del Security Group (ahora mismo permite todo el tráfico saliente) a los puertos mínimos necesarios (DNS 53, HTTP 80, HTTPS 443, NTP 123).
 - [ ] Parametrizar la ruta de la clave pública del `aws_key_pair` como variable.
-- [ ] Separar `region` sin `default` para forzar su elección explícita.
+- [ ] Quitar el `default` de `region` para obligar a elegirla explícitamente.
 - [ ] Nivel 2: NAT Gateway para la subnet privada, módulos, remote state.
+
+## Problemas encontrados
+
+- **Síntoma**: `terraform plan` fallaba con un error de credenciales inválidas. **Causa**: problema con la Secret Access Key configurada. **Solución**: se optó por regenerar las claves en IAM y volver a correr `aws configure`.
+- **Síntoma**: tras el `apply`, no se veía la instancia en la consola de AWS. **Causa**: la consola estaba en otra región distinta a `eu-west-1`. **Solución**: cambiar el selector de región arriba a la derecha.
+- **Síntoma**: no se podía hacer SSH pese a tener el SG bien configurado. **Causa**: la instancia se había creado sin `key_name`, sin ningún par de claves asociado. **Solución**: crear `aws_key_pair` y añadir `key_name` al `aws_instance` (esto fuerza un `destroy and recreate`, al ser un atributo fijado en el momento del lanzamiento).
 
 ## Seguridad / notas de diseño
 
